@@ -1,10 +1,10 @@
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';  
 import { promisify } from 'node:util';
 import { createConnection } from 'node:net';
 import os from 'node:os';
 import { NetworkConnectivityResult } from '../types.js';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export const networkTools = {
   getNetworkInterfaces: {
@@ -125,12 +125,12 @@ export const networkTools = {
     },
     handler: async ({ host, count = 4 }: { host: string; count?: number }) => {
       const platform = os.platform();
-      const pingCmd = platform === 'win32' 
-        ? `ping -n ${count} ${host}`
-        : `ping -c ${count} ${host}`;
+      const pingArgs = platform === 'win32'
+      ? ['-n', String(count), host]
+      : ['-c', String(count), host];
 
       try {
-        const { stdout } = await execAsync(pingCmd);
+        const { stdout } = await execFileAsync('ping', pingArgs);
         return {
           content: [{
             type: 'text',
@@ -158,10 +158,10 @@ export const networkTools = {
     },
     handler: async ({ host }: { host: string }) => {
       const platform = os.platform();
-      const cmd = platform === 'win32' ? `tracert ${host}` : `traceroute ${host}`;
+      const file = platform === 'win32' ? 'tracert' : 'traceroute';
 
       try {
-        const { stdout } = await execAsync(cmd);
+       const { stdout } = await execFileAsync(file, [host])
         return {
           content: [{
             type: 'text',
